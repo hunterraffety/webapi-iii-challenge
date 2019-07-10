@@ -17,7 +17,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', (req, res) => {});
+router.get('/:id', validateUserId, (req, res) => {
+  try {
+    const user = Users.getById(req.user);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+});
 
 router.get('/:id/posts', (req, res) => {});
 
@@ -29,8 +36,12 @@ router.put('/:id', (req, res) => {});
 
 function validateUserId(req, res, next) {
   const { id } = req.params;
-  if ((id = req.params.id)) {
-    console.log(`test ${id}`);
+  console.log(`id from validateuserid`, id);
+  if (!isNaN(id)) {
+    req.user = id;
+    next();
+  } else {
+    res.status(400).json({ message: 'invalid user id' });
   }
 }
 
