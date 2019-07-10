@@ -1,11 +1,19 @@
 // dependencies
 const express = require('express');
+const moment = require('moment');
 const helmet = require('helmet');
-
-// custom middleware 'imports'
 
 // express
 const server = express();
+
+function logger(req, res, next) {
+  console.log(
+    `You used a ${req.method} request to the ${
+      req.path
+    } URI on ${moment().format('LLLL')}`
+  );
+  next();
+}
 
 // middleware etc.
 server.use(logger);
