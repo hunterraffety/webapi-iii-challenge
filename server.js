@@ -2,16 +2,15 @@
 const express = require('express');
 const helmet = require('helmet');
 
-// custom middleware
-const logger = require('./middleware/logger');
-const {
-  validateUserId,
-  validateUser,
-  validatePost
-} = require('./middleware/validation');
+// custom middleware 'imports'
 
 // express
 const server = express();
+
+// middleware etc.
+server.use(logger);
+server.use(helmet());
+server.use(express.json());
 
 // server
 server.get('/', (req, res) => {
