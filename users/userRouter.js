@@ -10,10 +10,10 @@ router.use(express.json());
 // to add a user?
 router.post('/', validateUser, async (req, res) => {
   try {
-    const user = Users.insert(newUser);
-    res.status(201).json(user);
+    const newUser = await Users.insert(user);
+    res.status(201).json(newUser);
   } catch (error) {
-    res.status(400).json({ message: 'nope s' });
+    res.status(400).json({ message: 'Could not add user.' });
   }
 });
 
@@ -100,12 +100,14 @@ function validateUserId(req, res, next) {
 // }
 
 function validateUser(req, res, next) {
-  const userObj = req.body;
-  const name = req.body.name;
-  console.log(`this is ${name} name`);
-  if (name === undefined) {
-    console.log('helelel');
+  const { name } = req.body;
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ message: 'Missing user data.' });
+  } else if (!name) {
+    res.status(400).json({ message: 'Please supply a name.' });
   } else {
+    user = req.body;
+    console.log(user);
     next();
   }
 }
