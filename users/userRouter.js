@@ -1,13 +1,21 @@
 const express = require('express');
 
 const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
 const router = express.Router();
 
 router.use(express.json());
 
 // to add a user?
-router.post('/', validateUser, async (req, res) => {});
+router.post('/', validateUser, async (req, res) => {
+  try {
+    const user = Users.insert(newUser);
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ message: 'nope s' });
+  }
+});
 
 // to add a post for a specific user
 router.post('/:id/posts', validateUserId, validatePost, async (req, res) => {});
@@ -43,7 +51,11 @@ router.get('/:id/posts', validateUserId, async (req, res) => {
 });
 
 // to delete a user
-router.delete('/:id', validateUserId, async (req, res) => {});
+router.delete('/:id', validateUserId, async (req, res) => {
+  Users.remove(req.user).then(user => {
+    //
+  });
+});
 
 // to update a user
 router.put('/:id', validateUserId, async (req, res) => {});
@@ -69,7 +81,34 @@ function validateUserId(req, res, next) {
 
 /* thx papa chris~ */
 
-function validateUser(req, res, next) {}
+// function validateUser(req, res, next) {
+//   const userInfo = req.body;
+//   try {
+//     if (!userInfo) {
+//       res.status(400).json({ message: 'Missing user data.' });
+//     } else {
+//       if (!userInfo.name) {
+//         res.status(400).json({ message: 'Missing required name field.' });
+//       } else {
+//         newUser = userInfo;
+//         next();
+//       }
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: 'Whats wrong with you' });
+//   }
+// }
+
+function validateUser(req, res, next) {
+  const userObj = req.body;
+  const name = req.body.name;
+  console.log(`this is ${name} name`);
+  if (name === undefined) {
+    console.log('helelel');
+  } else {
+    next();
+  }
+}
 
 function validatePost(req, res, next) {}
 
