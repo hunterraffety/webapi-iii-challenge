@@ -18,7 +18,18 @@ router.post('/', validateUser, async (req, res) => {
 });
 
 // to add a post for a specific user
-router.post('/:id/posts', validateUserId, validatePost, async (req, res) => {});
+router.post('/:id/posts', validateUserId, validatePost, async (req, res) => {
+  const user_id = req.user;
+  const text = content.text;
+  const validatedPost = { user_id, text };
+
+  try {
+    const newPost = await Posts.insert(validatedPost);
+    res.status(201).json(newPost);
+  } catch (error) {
+    res.status(400).json({ message: 'Could not add post.' });
+  }
+});
 
 // to get all users
 router.get('/', async (req, res) => {
@@ -52,13 +63,36 @@ router.get('/:id/posts', validateUserId, async (req, res) => {
 
 // to delete a user
 router.delete('/:id', validateUserId, async (req, res) => {
-  Users.remove(req.user).then(user => {
-    //
-  });
+  try {
+    const remove = await Users.remove(req.user);
+    if (remove > 0) {
+      res.status(200).json({ message: 'User deleted.' });
+    } else {
+      res.status(400).json({ message: 'Not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user.' });
+  }
 });
 
 // to update a user
-router.put('/:id', validateUserId, async (req, res) => {});
+router.put('/:id', validateUserId, async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    res.status(400).json({ message: 'Name needed.' });
+  } else {
+    try {
+      const user = await Users.update(req.user, req.body);
+      if (user) {
+        res.status(200).json({ message: 'Successfully updated' });
+      } else {
+        res.status(404).json({ message: 'That user could not be found.' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating user.' });
+    }
+  }
+});
 
 //custom middleware
 
@@ -107,11 +141,20 @@ function validateUser(req, res, next) {
     res.status(400).json({ message: 'Please supply a name.' });
   } else {
     user = req.body;
-    console.log(user);
     next();
   }
 }
 
-function validatePost(req, res, next) {}
+function validatePost(req, res, next) {
+  const { text } = req.body;
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ message: 'Missing post data.' });
+  } else if (!text) {
+    res.status(400).json({ message: 'Please supply your text.' });
+  } else {
+    content = req.body;
+    next();
+  }
+}
 
 module.exports = router;
