@@ -4,10 +4,15 @@ const Users = require('./userDb');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {});
+router.use(express.json());
 
-router.post('/:id/posts', (req, res) => {});
+// to add a user?
+router.post('/', validateUser, async (req, res) => {});
 
+// to add a post for a specific user
+router.post('/:id/posts', validateUserId, validatePost, async (req, res) => {});
+
+// to get all users
 router.get('/', async (req, res) => {
   try {
     const users = await Users.get(req.query);
@@ -17,33 +22,52 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', validateUserId, (req, res) => {
+// to get a specific user
+router.get('/:id', validateUserId, async (req, res) => {
   try {
-    const user = Users.getById(req.user);
+    const user = await Users.getById(req.user);
     res.status(200).json(user);
   } catch (error) {
     res.status(400).json(error);
   }
 });
 
-router.get('/:id/posts', (req, res) => {});
+// to get posts by a specific user
+router.get('/:id/posts', validateUserId, async (req, res) => {
+  try {
+    const posts = await Users.getUserPosts(req.user);
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+});
 
-router.delete('/:id', (req, res) => {});
+// to delete a user
+router.delete('/:id', validateUserId, async (req, res) => {});
 
-router.put('/:id', (req, res) => {});
+// to update a user
+router.put('/:id', validateUserId, async (req, res) => {});
 
 //custom middleware
 
 function validateUserId(req, res, next) {
   const { id } = req.params;
-  console.log(`id from validateuserid`, id);
-  if (!isNaN(id)) {
-    req.user = id;
-    next();
-  } else {
-    res.status(400).json({ message: 'invalid user id' });
-  }
+
+  Users.getById(id)
+    .then(user => {
+      if (!user) {
+        res.status(400).json({ message: 'Invalid user ID.' });
+      } else {
+        req.user = user.id;
+        next();
+      }
+    })
+    .catch(() => {
+      res.status(500).json({ message: 'User could not be retrieved.' });
+    });
 }
+
+/* thx papa chris~ */
 
 function validateUser(req, res, next) {}
 
